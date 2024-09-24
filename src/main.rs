@@ -48,7 +48,7 @@ fn load_fonts(ctx: &egui::Context) {
     let mut fonts = egui::FontDefinitions::default();
     fonts.font_data.insert(
         "my_font".to_owned(),
-        egui::FontData::from_static(include_bytes!("simsun.ttc"))
+        egui::FontData::from_static(include_bytes!("C:\\Windows\\Fonts\\simsun.ttc"))
     );
     fonts.families
         .get_mut(&egui::FontFamily::Proportional)
@@ -61,9 +61,10 @@ fn load_fonts(ctx: &egui::Context) {
 impl eframe::App for MyApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         egui::CentralPanel::default().show(ctx, |ui| {
-            ui.heading("计时器，按下 Left Ctrl 键开始计时");
-            ui.label(format!("{}毫秒", self.time))
+            ui.heading("计时器，按下 Left Ctrl 键开始计时，再按下 Left Ctrl 键结束计时");
+            ui.label(format!("{} 毫秒", self.time))
         });
+
         let keys: Vec<Keycode> = self.device_state.get_keys();
         if keys.len() == 0 {
             self.down_count = 0;
@@ -83,6 +84,7 @@ impl eframe::App for MyApp {
             }
             "started" => {
                 self.time = self.start_time.elapsed().as_millis();
+                self.status = "init".to_owned();
                 return;
             }
             _ => {
