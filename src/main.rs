@@ -9,7 +9,7 @@ use std::time::Instant;
 
 fn main() -> eframe::Result<()> {
     let options = eframe::NativeOptions {
-        viewport: egui::ViewportBuilder::default().with_inner_size([320.0, 160.0]),
+        viewport: egui::ViewportBuilder::default().with_inner_size([320.0, 140.0]),
         ..Default::default()
     };
     eframe::run_native(
@@ -22,6 +22,7 @@ fn main() -> eframe::Result<()> {
 struct MyApp {
     time: u128,
     status_receiver: Receiver<(String, u128)>,
+    flag: bool,
 }
 
 impl Default for MyApp {
@@ -48,6 +49,7 @@ impl Default for MyApp {
                         "init" => {
                             status = "started".to_string();
                             start_time = Instant::now();
+                            status_sender.send((status.clone(), 0)).unwrap();
                         }
                         "started" => {
                             let elapsed_time = start_time.elapsed().as_millis();
@@ -63,6 +65,7 @@ impl Default for MyApp {
         Self {
             time: 0,
             status_receiver,
+            flag: false,
         }
     }
 }
@@ -91,13 +94,22 @@ fn load_fonts(ctx: &egui::Context) {
 impl eframe::App for MyApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         egui::CentralPanel::default().show(ctx, |ui| {
-            ui.heading("计时器\n按下 Left Ctrl 键开始计时\n再次按下 Left Ctrl 键结束计时");
-            ui.label(format!("{} 毫秒", self.time))
+            ui.heading("Rustick 计时器\n按下 Left Ctrl 键开始计时\n再次按下 Left Ctrl 键结束计时");
+            ui.separator();
+            ui.label(format!("{} 毫秒", self.time));
+            if self.flag {
+                ui.label("正在计时");
+            } else {
+                ui.label("未开始计时");
+            }
         });
 
         if let Ok((status, time)) = self.status_receiver.try_recv() {
             if status == "init" {
                 self.time = time;
+                self.flag = false;
+            } else {
+                self.flag = true;
             }
         }
     }
