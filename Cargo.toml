@@ -1,0 +1,8 @@
+[package]
+name = "egui_test"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+device_query = "2.1.0"
+eframe = "0.28.1"
