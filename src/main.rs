@@ -94,7 +94,7 @@ fn load_fonts(ctx: &egui::Context) {
 impl eframe::App for MyApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         egui::CentralPanel::default().show(ctx, |ui| {
-            ui.heading("Rustick 计时器\n按下 Left Ctrl 键开始计时\n再次按下 Left Ctrl 键结束计时");
+            ui.heading("Rustick 计时器\n按下左边的 Ctrl 开始计时\n再次按下结束计时");
             ui.separator();
             ui.label(format!("{} 毫秒", self.time));
             if self.flag {
@@ -102,6 +102,14 @@ impl eframe::App for MyApp {
             } else {
                 ui.label("未开始计时");
             }
+            ui.horizontal(|ui| {
+                if ui.button("暗").clicked() {
+                    ctx.set_visuals(egui::Visuals::dark());
+                }
+                if ui.button("亮").clicked() {
+                    ctx.set_visuals(egui::Visuals::light());
+                }
+            });
         });
 
         if let Ok((status, time)) = self.status_receiver.try_recv() {

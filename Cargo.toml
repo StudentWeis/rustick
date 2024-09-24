@@ -1,6 +1,6 @@
 [package]
-name = "egui_test"
-version = "0.1.3"
+name = "Rustick"
+version = "0.1.4"
 edition = "2021"
 
 [dependencies]
