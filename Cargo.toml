@@ -1,7 +1,12 @@
 [package]
-name = "Rustick"
-version = "0.1.4"
+name = "rustick"
+version = "0.1.6"
 edition = "2021"
+
+[profile.release]
+lto = true
+panic = 'abort'
+opt-level = 'z'
 
 [dependencies]
 device_query = "2.1.0"

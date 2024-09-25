@@ -3,14 +3,6 @@
 version = 3
 
 [[package]]
-name = "Rustick"
-version = "0.1.4"
-dependencies = [
- "device_query",
- "eframe",
-]
-
-[[package]]
 name = "ab_glyph"
 version = "0.2.28"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2357,6 +2349,14 @@ name = "rustc-hash"
 version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "08d43f7aa6b08d49f382cde6a7982047c3426db949b1424bc4b7ec9ae12c6ce2"
+
+[[package]]
+name = "rustick"
+version = "0.1.6"
+dependencies = [
+ "device_query",
+ "eframe",
+]
 
 [[package]]
 name = "rustix"
