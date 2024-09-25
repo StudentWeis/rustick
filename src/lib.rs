@@ -87,6 +87,7 @@ impl eframe::App for MyApp {
         } else {
             ctx.send_viewport_cmd(egui::ViewportCommand::WindowLevel(egui::WindowLevel::Normal));
         }
+
         egui::CentralPanel::default().show(ctx, |ui| {
             egui::ScrollArea::vertical().show(ui, |ui| {
                 ui.horizontal(|ui| {
@@ -110,6 +111,10 @@ impl eframe::App for MyApp {
                     ui.label("未开始计时👌");
                 }
             });
+            ui.add_space(19.0);
+            ui.vertical_centered(|ui| {
+                ui.label("v0.1.7");
+            });
         });
 
         // 主题设置
@@ -124,7 +129,9 @@ impl eframe::App for MyApp {
             if status == "init" {
                 self.time = time;
                 self.tick_flag = false;
+                ctx.send_viewport_cmd(egui::ViewportCommand::Focus); // 计时完毕自动弹出
             } else {
+                self.time = 0;
                 self.tick_flag = true;
             }
         }
