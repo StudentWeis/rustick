@@ -101,19 +101,29 @@ impl eframe::App for MyApp {
                     });
                 });
             });
+
             ui.separator();
             ui.vertical_centered(|ui| {
                 ui.add_space(10.0);
-                ui.label(format!("{} 毫秒", self.time));
+                // 显示时间
+                if self.time == 0 {
+                    ui.label("-");
+                } else if self.time < 1000 {
+                    ui.label(format!("{} 毫秒", self.time));
+                } else if self.time > 1000 {
+                    ui.label(format!("{}.{} 秒", self.time / 1000, self.time % 1000));
+                }
+                // 显示计时状态
                 if self.tick_flag {
                     ui.label("正在计时...");
                 } else {
                     ui.label("未开始计时👌");
                 }
             });
+
             ui.add_space(19.0);
             ui.vertical_centered(|ui| {
-                ui.label("v0.1.7");
+                ui.label("v0.1.8");
             });
         });
 
