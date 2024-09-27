@@ -8,6 +8,8 @@ pub struct MyApp {
     time: u128,
     status_receiver: Receiver<(String, u128)>,
     tick_flag: bool,
+    can_tick: bool,
+    name: String,
     menu_config: MenuConfig,
 }
 
@@ -51,6 +53,8 @@ impl Default for MyApp {
             time: 0,
             status_receiver,
             tick_flag: false,
+            can_tick: true,
+            name: "".to_string(),
             menu_config: MenuConfig::default(),
         }
     }
@@ -104,6 +108,13 @@ impl eframe::App for MyApp {
 
             ui.separator();
             ui.vertical_centered(|ui| {
+                ui.add_space(5.0);
+                ui.horizontal(|ui| {
+                    ui.checkbox(&mut self.can_tick, "开启使用");
+                    // 事项记录
+                    ui.label("事项: ");
+                    ui.text_edit_singleline(&mut self.name);
+                });
                 ui.add_space(10.0);
                 // 显示时间
                 if self.time == 0 {
@@ -123,7 +134,7 @@ impl eframe::App for MyApp {
 
             ui.add_space(19.0);
             ui.vertical_centered(|ui| {
-                ui.label("v0.1.8");
+                ui.label("v0.1.9");
             });
         });
 
@@ -136,20 +147,27 @@ impl eframe::App for MyApp {
 
         // 计时消息
         if let Ok((status, time)) = self.status_receiver.try_recv() {
-            if status == "init" {
-                self.time = time;
-                self.tick_flag = false;
-                ctx.send_viewport_cmd(egui::ViewportCommand::Focus); // 计时完毕自动弹出
-            } else {
-                self.time = 0;
-                self.tick_flag = true;
+            if self.can_tick {
+                if status == "init" {
+                    self.time = time;
+                    self.tick_flag = false;
+                    ctx.send_viewport_cmd(egui::ViewportCommand::Focus); // 计时完毕自动弹出
+                } else {
+                    self.time = 0;
+                    self.tick_flag = true;
+                }
             }
         }
     }
 }
 
-#[derive(Default)]
 struct MenuConfig {
     dark_mode: bool,
     top: bool,
+}
+
+impl Default for MenuConfig {
+    fn default() -> Self {
+        Self { dark_mode: true, top: false }
+    }
 }
