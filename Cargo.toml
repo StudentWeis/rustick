@@ -1,6 +1,6 @@
 [package]
 name = "rustick"
-version = "0.1.9"
+version = "0.2.0"
 edition = "2021"
 
 [profile.release]
@@ -9,5 +9,15 @@ panic = 'abort'
 opt-level = 'z'
 
 [dependencies]
+chrono = { version = "0.4.38", features = ["serde"] }
 device_query = "2.1.0"
-eframe = "0.28.1"
+eframe = { version = "0.29.0", features = ["accesskit"] }
+polodb_core = "5.1.1"
+polodb-librocksdb-sys = { version = "9.0.0-alpha.1", features = ["bzip2"] }
+serde = { version = "1.0.210", features = ["rc"] }
+
+[profile.dev]
+opt-level = 1
+
+[profile.dev.package."*"]
+opt-level = 3

@@ -1,8 +1,11 @@
+use db::db::get_all_logs;
 use device_query::{ DeviceQuery, DeviceState, Keycode };
 use std::sync::mpsc::{ self, Receiver };
 use std::thread;
 use std::time::Instant;
-use eframe::egui;
+use eframe::egui::{ self, Window };
+
+mod db;
 
 pub struct MyApp {
     time: u128,
@@ -10,14 +13,14 @@ pub struct MyApp {
     tick_flag: bool,
     can_tick: bool,
     name: String,
+    show_log_window: bool,
     menu_config: MenuConfig,
 }
 
 impl Default for MyApp {
     fn default() -> Self {
+        // 创建另一个线程执行键盘监听
         let (status_sender, status_receiver) = mpsc::channel();
-
-        // Spawn a new thread to handle key input and status updates
         thread::spawn(move || {
             let device_state = DeviceState::new();
             let mut down_count = 0;
@@ -55,6 +58,7 @@ impl Default for MyApp {
             tick_flag: false,
             can_tick: true,
             name: "".to_string(),
+            show_log_window: false,
             menu_config: MenuConfig::default(),
         }
     }
@@ -103,8 +107,22 @@ impl eframe::App for MyApp {
                     ui.menu_button("提示", |ui| {
                         ui.label("按下左边的 Ctrl 开始计时\n再次按下结束计时");
                     });
+                    if ui.button("Toggle Log Window").clicked() {
+                        self.show_log_window = !self.show_log_window;
+                    }
                 });
             });
+            if self.show_log_window {
+                Window::new("Log Window").show(ctx, |ui| {
+                    egui::ScrollArea::vertical().show(ui, |ui| {
+                        for log in get_all_logs() {
+                            ui.label(
+                                format!("{}: {} - {}", log.datetime, log.message, log.ticktime)
+                            );
+                        }
+                    });
+                });
+            }
 
             ui.separator();
             ui.vertical_centered(|ui| {
@@ -148,10 +166,15 @@ impl eframe::App for MyApp {
         // 计时消息
         if let Ok((status, time)) = self.status_receiver.try_recv() {
             if self.can_tick {
+                // 计时完毕
                 if status == "init" {
                     self.time = time;
                     self.tick_flag = false;
-                    ctx.send_viewport_cmd(egui::ViewportCommand::Focus); // 计时完毕自动弹出
+                    // 计时完毕自动弹出
+                    ctx.send_viewport_cmd(egui::ViewportCommand::Focus);
+
+                    // 日志记录
+                    db::db::insert_log(self.name.clone(), self.time.to_string());
                 } else {
                     self.time = 0;
                     self.tick_flag = true;
