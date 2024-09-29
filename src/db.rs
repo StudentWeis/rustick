@@ -1,5 +1,6 @@
 pub mod db {
-    use chrono::Utc;
+    use chrono::{ Utc, TimeZone };
+    use chrono_tz::Asia::Shanghai;
     use polodb_core::{ bson::doc, CollectionT, Database };
     use serde::{ Deserialize, Serialize };
 
@@ -11,11 +12,11 @@ pub mod db {
     }
 
     pub fn insert_log(message: String, ticktime: String) {
-        let db = Database::open_path("test-polo").unwrap();
+        let db = Database::open_path("Rustick-db").unwrap();
         let collection = db.collection("logs");
         collection
             .insert_one(Log {
-                datetime: Utc::now().naive_utc().to_string(),
+                datetime: Shanghai.from_utc_datetime(&Utc::now().naive_utc()).to_string(),
                 message,
                 ticktime,
             })
@@ -23,7 +24,7 @@ pub mod db {
     }
 
     pub fn get_all_logs() -> Vec<Log> {
-        let db = Database::open_path("test-polo").unwrap();
+        let db = Database::open_path("Rustick-db").unwrap();
         let collection = db.collection("logs");
         let logs: Vec<Log> = collection
             .find(doc! {})

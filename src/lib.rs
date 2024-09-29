@@ -1,4 +1,4 @@
-use db::db::get_all_logs;
+use db::db::{ get_all_logs, Log };
 use device_query::{ DeviceQuery, DeviceState, Keycode };
 use std::sync::mpsc::{ self, Receiver };
 use std::thread;
@@ -14,6 +14,7 @@ pub struct MyApp {
     can_tick: bool,
     name: String,
     show_log_window: bool,
+    logs: Vec<Log>,
     menu_config: MenuConfig,
 }
 
@@ -59,6 +60,7 @@ impl Default for MyApp {
             can_tick: true,
             name: "".to_string(),
             show_log_window: false,
+            logs: Vec::new(),
             menu_config: MenuConfig::default(),
         }
     }
@@ -107,21 +109,26 @@ impl eframe::App for MyApp {
                     ui.menu_button("提示", |ui| {
                         ui.label("按下左边的 Ctrl 开始计时\n再次按下结束计时");
                     });
-                    if ui.button("Toggle Log Window").clicked() {
+
+                    // 日志获取懒加载
+                    if ui.button("日志").clicked() {
+                        self.logs = get_all_logs();
                         self.show_log_window = !self.show_log_window;
                     }
                 });
             });
             if self.show_log_window {
-                Window::new("Log Window").show(ctx, |ui| {
-                    egui::ScrollArea::vertical().show(ui, |ui| {
-                        for log in get_all_logs() {
-                            ui.label(
-                                format!("{}: {} - {}", log.datetime, log.message, log.ticktime)
-                            );
-                        }
+                Window::new("计时日志")
+                    .open(&mut self.show_log_window)
+                    .show(ctx, |ui| {
+                        egui::ScrollArea::vertical().show(ui, |ui| {
+                            for log in &self.logs {
+                                ui.label(
+                                    format!("{}: {} - {} ms", log.datetime, log.message, log.ticktime)
+                                );
+                            }
+                        });
                     });
-                });
             }
 
             ui.separator();
@@ -140,7 +147,11 @@ impl eframe::App for MyApp {
                 } else if self.time < 1000 {
                     ui.label(format!("{} 毫秒", self.time));
                 } else if self.time > 1000 {
-                    ui.label(format!("{}.{} 秒", self.time / 1000, self.time % 1000));
+                    if self.time % 1000 < 100 {
+                        ui.label(format!("{}.0{} 秒", self.time / 1000, self.time % 1000));
+                    } else {
+                        ui.label(format!("{}.{} 秒", self.time / 1000, self.time % 1000));
+                    }
                 }
                 // 显示计时状态
                 if self.tick_flag {
@@ -152,7 +163,7 @@ impl eframe::App for MyApp {
 
             ui.add_space(19.0);
             ui.vertical_centered(|ui| {
-                ui.label("v0.1.9");
+                ui.label("v0.2.1");
             });
         });
 
