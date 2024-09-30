@@ -12,6 +12,7 @@ pub struct MyApp {
     status_receiver: Receiver<(String, u128)>,
     tick_flag: bool,
     can_tick: bool,
+    can_log: bool,
     name: String,
     show_log_window: bool,
     logs: Vec<Log>,
@@ -22,9 +23,10 @@ impl Default for MyApp {
     fn default() -> Self {
         Self {
             time: 0,
-            status_receiver,
+            status_receiver: mpsc::channel().1,
             tick_flag: false,
             can_tick: true,
+            can_log: false,
             name: "".to_string(),
             show_log_window: false,
             logs: Vec::new(),
@@ -69,7 +71,9 @@ impl MyApp {
                 }
             }
         });
-        Self::default()
+        let mut app = Self::default();
+        app.status_receiver = status_receiver;
+        app
     }
 }
 
@@ -113,6 +117,11 @@ impl eframe::App for MyApp {
                     .open(&mut self.show_log_window)
                     .show(ctx, |ui| {
                         egui::ScrollArea::vertical().show(ui, |ui| {
+                            if ui.button("清空日志").clicked() {
+                                db::delete_all_logs();
+                                self.logs.clear();
+                            }
+                            ui.separator();
                             for log in &self.logs {
                                 ui.label(
                                     format!(
@@ -131,9 +140,9 @@ impl eframe::App for MyApp {
             ui.vertical_centered(|ui| {
                 ui.add_space(5.0);
                 ui.horizontal(|ui| {
-                    ui.checkbox(&mut self.can_tick, "开启使用");
-                    // 事项记录
-                    ui.label("事项: ");
+                    // 日志记录
+                    ui.checkbox(&mut self.can_log, "开启日志");
+                    ui.label("日志事项: ");
                     ui.text_edit_singleline(&mut self.name);
                 });
                 ui.add_space(10.0);
@@ -155,11 +164,12 @@ impl eframe::App for MyApp {
                 } else {
                     ui.label("未开始计时👌");
                 }
+                ui.checkbox(&mut self.can_tick, "允许计时");
             });
 
             ui.add_space(19.0);
             ui.vertical_centered(|ui| {
-                ui.label("v0.2.2");
+                ui.label("v0.2.3");
             });
         });
 
@@ -189,7 +199,9 @@ impl eframe::App for MyApp {
                     // 自动弹出
                     ctx.send_viewport_cmd(egui::ViewportCommand::Focus);
                     // 日志记录
-                    insert_log(self.name.clone(), self.time.to_string());
+                    if self.can_log {
+                        insert_log(self.name.clone(), self.time.to_string());
+                    }
                 } else {
                     // 开始计时
                     self.time = 0;

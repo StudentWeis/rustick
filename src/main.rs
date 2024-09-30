@@ -6,7 +6,7 @@ use rustick::MyApp;
 
 fn main() -> eframe::Result<()> {
     let options = eframe::NativeOptions {
-        viewport: egui::ViewportBuilder::default().with_inner_size([280.0, 155.0]),
+        viewport: egui::ViewportBuilder::default().with_inner_size([280.0, 170.0]),
         ..Default::default()
     };
     eframe::run_native(
