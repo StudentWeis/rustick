@@ -1,4 +1,4 @@
-use db::db::{ get_all_logs, Log };
+use db::{ insert_log, get_all_logs, Log };
 use device_query::{ DeviceQuery, DeviceState, Keycode };
 use std::sync::mpsc::{ self, Receiver };
 use std::thread;
@@ -20,6 +20,22 @@ pub struct MyApp {
 
 impl Default for MyApp {
     fn default() -> Self {
+        Self {
+            time: 0,
+            status_receiver,
+            tick_flag: false,
+            can_tick: true,
+            name: "".to_string(),
+            show_log_window: false,
+            logs: Vec::new(),
+            menu_config: MenuConfig::default(),
+        }
+    }
+}
+
+impl MyApp {
+    pub fn new(cc: &eframe::CreationContext<'_>) -> Self {
+        load_fonts(&cc.egui_ctx);
         // 创建另一个线程执行键盘监听
         let (status_sender, status_receiver) = mpsc::channel();
         thread::spawn(move || {
@@ -53,22 +69,6 @@ impl Default for MyApp {
                 }
             }
         });
-        Self {
-            time: 0,
-            status_receiver,
-            tick_flag: false,
-            can_tick: true,
-            name: "".to_string(),
-            show_log_window: false,
-            logs: Vec::new(),
-            menu_config: MenuConfig::default(),
-        }
-    }
-}
-
-impl MyApp {
-    pub fn new(cc: &eframe::CreationContext<'_>) -> Self {
-        load_fonts(&cc.egui_ctx);
         Self::default()
     }
 }
@@ -89,15 +89,7 @@ fn load_fonts(ctx: &egui::Context) {
 
 impl eframe::App for MyApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
-        // 置顶功能
-        if self.menu_config.top {
-            ctx.send_viewport_cmd(
-                egui::ViewportCommand::WindowLevel(egui::WindowLevel::AlwaysOnTop)
-            );
-        } else {
-            ctx.send_viewport_cmd(egui::ViewportCommand::WindowLevel(egui::WindowLevel::Normal));
-        }
-
+        // 主体 UI
         egui::CentralPanel::default().show(ctx, |ui| {
             egui::ScrollArea::vertical().show(ui, |ui| {
                 ui.horizontal(|ui| {
@@ -106,15 +98,14 @@ impl eframe::App for MyApp {
                         ui.checkbox(&mut self.menu_config.dark_mode, "黑暗模式");
                         ui.checkbox(&mut self.menu_config.top, "置顶");
                     });
-                    ui.menu_button("提示", |ui| {
-                        ui.label("按下左边的 Ctrl 开始计时\n再次按下结束计时");
-                    });
-
                     // 日志获取懒加载
                     if ui.button("日志").clicked() {
                         self.logs = get_all_logs();
                         self.show_log_window = !self.show_log_window;
                     }
+                    ui.menu_button("提示", |ui| {
+                        ui.label("按下左边的 Ctrl 开始计时\n再次按下结束计时");
+                    });
                 });
             });
             if self.show_log_window {
@@ -124,7 +115,12 @@ impl eframe::App for MyApp {
                         egui::ScrollArea::vertical().show(ui, |ui| {
                             for log in &self.logs {
                                 ui.label(
-                                    format!("{}: {} - {} ms", log.datetime, log.message, log.ticktime)
+                                    format!(
+                                        "{}: {} - {} ms",
+                                        log.datetime,
+                                        log.message,
+                                        log.ticktime
+                                    )
                                 );
                             }
                         });
@@ -163,9 +159,18 @@ impl eframe::App for MyApp {
 
             ui.add_space(19.0);
             ui.vertical_centered(|ui| {
-                ui.label("v0.2.1");
+                ui.label("v0.2.2");
             });
         });
+
+        // 置顶功能
+        if self.menu_config.top {
+            ctx.send_viewport_cmd(
+                egui::ViewportCommand::WindowLevel(egui::WindowLevel::AlwaysOnTop)
+            );
+        } else {
+            ctx.send_viewport_cmd(egui::ViewportCommand::WindowLevel(egui::WindowLevel::Normal));
+        }
 
         // 主题设置
         if self.menu_config.dark_mode {
@@ -177,16 +182,16 @@ impl eframe::App for MyApp {
         // 计时消息
         if let Ok((status, time)) = self.status_receiver.try_recv() {
             if self.can_tick {
-                // 计时完毕
                 if status == "init" {
+                    // 计时完毕
                     self.time = time;
                     self.tick_flag = false;
-                    // 计时完毕自动弹出
+                    // 自动弹出
                     ctx.send_viewport_cmd(egui::ViewportCommand::Focus);
-
                     // 日志记录
-                    db::db::insert_log(self.name.clone(), self.time.to_string());
+                    insert_log(self.name.clone(), self.time.to_string());
                 } else {
+                    // 开始计时
                     self.time = 0;
                     self.tick_flag = true;
                 }

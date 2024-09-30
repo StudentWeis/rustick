@@ -2550,9 +2550,9 @@ dependencies = [
 
 [[package]]
 name = "polodb_core"
-version = "5.1.1"
+version = "5.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f39c35e857401a330ad175e3fea6a516e0929e856cacd3a1a81892079f8355e3"
+checksum = "120b133f7ecb7a944d32d7f66e73382f482254a94ac1fa89a509f8dd48282312"
 dependencies = [
  "bson",
  "byteorder",
@@ -2746,7 +2746,7 @@ checksum = "08d43f7aa6b08d49f382cde6a7982047c3426db949b1424bc4b7ec9ae12c6ce2"
 
 [[package]]
 name = "rustick"
-version = "0.2.1"
+version = "0.2.2"
 dependencies = [
  "chrono",
  "chrono-tz",

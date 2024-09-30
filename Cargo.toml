@@ -1,6 +1,6 @@
 [package]
 name = "rustick"
-version = "0.2.1"
+version = "0.2.2"
 edition = "2021"
 
 [profile.release]
@@ -13,5 +13,5 @@ chrono = { version = "0.4.38", features = ["serde"] }
 chrono-tz = "0.10.0"
 device_query = "2.1.0"
 eframe = { version = "0.29.0", features = ["accesskit"] }
-polodb_core = "5.1.1"
+polodb_core = "5.1.2"
 serde = { version = "1.0.210", features = ["rc"] }
